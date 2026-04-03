@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pong | AI Game Portal</title>
+    <meta name="color-scheme" content="dark" />
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+
+    <header class="site-header">
+      <nav class="navbar" aria-label="Pong navigation">
+        <div class="brand" aria-label="AI Game Portal">
+          <span class="brand__mark" aria-hidden="true"></span>
+          <div class="brand__stack">
+            <span class="brand__text">AI Game Portal</span>
+            <span class="brand__sub">Pong (vs AI)</span>
+          </div>
+        </div>
+
+        <div class="nav-actions">
+          <button id="pauseBtn" class="btn btn--primary" type="button">Pause</button>
+          <a class="btn btn--ghost" href="../../index.html">Return to Portal</a>
+        </div>
+      </nav>
+    </header>
+
+    <main id="main" class="container">
+      <section class="panel">
+        <header class="hud">
+          <div class="scoreboard" aria-label="Scoreboard">
+            <div class="side side--player">
+              <span class="side__label">You</span>
+              <span id="p1Score" class="side__score">0</span>
+            </div>
+            <div class="mid">
+              <span class="mid__goal">First to 5</span>
+              <span id="statusLine" class="mid__status">W/S or Arrows • Esc to pause</span>
+            </div>
+            <div class="side side--bot">
+              <span class="side__label">Bot</span>
+              <span id="p2Score" class="side__score">0</span>
+            </div>
+          </div>
+        </header>
+
+        <div class="content">
+          <div class="stage">
+            <canvas id="game" width="720" height="420" aria-label="Pong playfield"></canvas>
+
+            <div id="overlay" class="overlay" hidden>
+              <div class="overlay__card">
+                <h1 id="overlayTitle" class="overlay__title">Game Over</h1>
+                <p id="overlayText" class="overlay__text">Run it back?</p>
+                <div class="overlay__actions">
+                  <button id="playAgainBtn" class="btn btn--primary" type="button">
+                    Play Again
+                  </button>
+                  <a class="btn btn--ghost" href="../../index.html">Return to Portal</a>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <aside class="leaderboard" aria-label="Global leaderboard">
+            <div class="leaderboard__head">
+              <h2 class="leaderboard__title">Global Top 10 (Pong)</h2>
+              <span class="badge badge--outline">Live</span>
+            </div>
+
+            <p id="authNote" class="note" role="status" aria-live="polite">
+              Checking login…
+            </p>
+
+            <ol id="globalList" class="leader-list" aria-label="Top scores list"></ol>
+
+            <p
+              id="leaderboardError"
+              class="note note--error"
+              role="status"
+              aria-live="polite"
+              hidden
+            >
+              Leaderboard error.
+            </p>
+          </aside>
+        </div>
+
+        <footer class="footer">
+          <span class="footer__note">
+            Player: neon blue • Bot: neon pink • Ball: neon white
+          </span>
+        </footer>
+      </section>
+    </main>
+
+    <script type="module" src="./game.js"></script>
+  </body>
+</html>

@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Snake | AI Game Portal</title>
+    <meta name="color-scheme" content="dark" />
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+
+    <header class="site-header">
+      <nav class="navbar" aria-label="Snake navigation">
+        <div class="brand" aria-label="AI Game Portal">
+          <span class="brand__mark" aria-hidden="true"></span>
+          <div class="brand__stack">
+            <span class="brand__text">AI Game Portal</span>
+            <span class="brand__sub">Snake</span>
+          </div>
+        </div>
+
+        <div class="nav-actions">
+          <a class="btn btn--ghost" href="../../index.html">Return to Portal</a>
+        </div>
+      </nav>
+    </header>
+
+    <main id="main" class="container">
+      <section class="panel">
+        <header class="hud">
+          <div class="scores">
+            <div class="score">
+              <span class="score__label">Current Score</span>
+              <span id="scoreNow" class="score__value">0</span>
+            </div>
+            <div class="score">
+              <span class="score__label">Highest Score</span>
+              <span id="scoreBest" class="score__value score__value--cyan">0</span>
+            </div>
+          </div>
+
+          <div class="controls">
+            <button id="pauseBtn" class="btn btn--primary" type="button">
+              Pause
+            </button>
+            <div class="hint">
+              Move: <kbd>WASD</kbd> / <kbd>Arrows</kbd> • Pause: <kbd>Space</kbd> /
+              <kbd>Esc</kbd>
+            </div>
+          </div>
+        </header>
+
+        <div class="content">
+          <div class="stage">
+            <canvas
+              id="game"
+              width="420"
+              height="420"
+              aria-label="Snake game board"
+            ></canvas>
+
+            <div id="overlay" class="overlay" hidden>
+              <div class="overlay__card">
+                <h1 id="overlayTitle" class="overlay__title">Game Over</h1>
+                <p id="overlayText" class="overlay__text">
+                  You hit something. Want another run?
+                </p>
+                <div class="overlay__actions">
+                  <button id="playAgainBtn" class="btn btn--primary" type="button">
+                    Play Again
+                  </button>
+                  <a class="btn btn--ghost" href="../../index.html">Return to Portal</a>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <aside class="leaderboard" aria-label="Global leaderboard">
+            <div class="leaderboard__head">
+              <h2 class="leaderboard__title">Global Top 10</h2>
+              <span class="badge badge--outline">Live</span>
+            </div>
+
+            <p id="authNote" class="note" role="status" aria-live="polite">
+              Checking login…
+            </p>
+
+            <ol id="globalList" class="leader-list" aria-label="Top scores list"></ol>
+
+            <p id="leaderboardError" class="note note--error" role="status" aria-live="polite" hidden>
+              Leaderboard error.
+            </p>
+          </aside>
+        </div>
+
+        <footer class="footer">
+          <span class="footer__note">
+            Tip: Don’t reverse direction instantly—classic rules apply.
+          </span>
+        </footer>
+      </section>
+    </main>
+
+    <script type="module" src="./game.js"></script>
+  </body>
+</html>
