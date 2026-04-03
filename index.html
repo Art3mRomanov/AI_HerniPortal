@@ -33,13 +33,34 @@
       >
         <div class="card card--glow auth-card">
           <div class="card__header">
-            <h1 id="authTitle" class="title">Login</h1>
+            <h1 id="authTitle" class="title">Access Portal</h1>
             <p class="subtitle">
-              Enter your credentials to access the arcade dashboard.
+              Login, create an account, or play as a guest.
             </p>
           </div>
 
           <form id="authForm" class="form" autocomplete="on">
+            <div class="auth-mode" role="tablist" aria-label="Auth mode">
+              <button
+                id="modeLogin"
+                class="mode-btn is-active"
+                type="button"
+                role="tab"
+                aria-selected="true"
+              >
+                Login
+              </button>
+              <button
+                id="modeRegister"
+                class="mode-btn"
+                type="button"
+                role="tab"
+                aria-selected="false"
+              >
+                Register
+              </button>
+            </div>
+
             <div class="field">
               <label class="label" for="email">Email</label>
               <input
@@ -66,21 +87,39 @@
               />
             </div>
 
-            <button id="loginBtn" class="btn btn--primary" type="submit">
-              Login
-            </button>
+            <div id="confirmField" class="field" hidden>
+              <label class="label" for="passwordConfirm">Repeat password</label>
+              <input
+                id="passwordConfirm"
+                name="passwordConfirm"
+                type="password"
+                autocomplete="new-password"
+                placeholder="••••••••"
+                minlength="6"
+              />
+            </div>
 
-            <div class="form__row form__row--split">
-              <button class="btn btn--link" type="button" disabled>
-                Register (coming soon)
+            <p
+              id="authError"
+              class="hint hint--error"
+              role="status"
+              aria-live="polite"
+              hidden
+            >
+              Error goes here
+            </p>
+
+            <div class="form__row form__row--stack">
+              <button id="submitBtn" class="btn btn--primary" type="submit">
+                Login
               </button>
-              <button class="btn btn--link" type="button" disabled>
-                Forgot password (coming soon)
+              <button id="guestBtn" class="btn btn--ghost" type="button">
+                Play as guest
               </button>
             </div>
 
             <p id="authHint" class="hint" role="status" aria-live="polite">
-              Demo: click Login to toggle the dashboard.
+              Tip: guest mode won’t save progress.
             </p>
           </form>
         </div>
@@ -194,6 +233,7 @@
       </section>
     </main>
 
-    <script defer src="./js/main.js"></script>
+    <script type="module" src="./js/firebase.js"></script>
+    <script type="module" src="./js/main.js"></script>
   </body>
 </html>

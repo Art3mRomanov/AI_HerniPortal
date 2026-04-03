@@ -294,10 +294,58 @@ input:focus {
   flex-wrap: wrap;
 }
 
+.form__row--stack {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.auth-mode {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  padding: 8px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.mode-btn {
+  height: 38px;
+  border-radius: 12px;
+  border: 1px solid rgba(46, 242, 255, 0.14);
+  background: rgba(8, 10, 22, 0.40);
+  color: rgba(245, 247, 255, 0.78);
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: transform 120ms ease, box-shadow 120ms ease, border-color 120ms ease,
+    background 120ms ease;
+}
+
+.mode-btn:hover {
+  border-color: rgba(46, 242, 255, 0.28);
+}
+
+.mode-btn.is-active {
+  color: rgba(245, 247, 255, 0.92);
+  background: linear-gradient(90deg, rgba(46, 242, 255, 0.18), rgba(255, 43, 214, 0.12));
+  border-color: rgba(46, 242, 255, 0.32);
+  box-shadow: 0 0 0 1px rgba(255, 43, 214, 0.10);
+}
+
 .hint {
   margin: 0;
   color: rgba(245, 247, 255, 0.62);
   font-size: 12px;
+}
+
+.hint--error {
+  color: rgba(255, 190, 221, 0.95);
+  background: rgba(255, 43, 214, 0.08);
+  border: 1px solid rgba(255, 43, 214, 0.18);
+  border-radius: 12px;
+  padding: 10px 12px;
 }
 
 /* DASHBOARD */
