@@ -28,6 +28,10 @@
   box-sizing: border-box;
 }
 
+[hidden] {
+  display: none !important;
+}
+
 html,
 body {
   height: 100%;
@@ -207,6 +211,49 @@ body::before {
   color: rgba(245, 247, 255, 0.78);
   letter-spacing: 0.06em;
   text-transform: uppercase;
+}
+
+/* Password "Show/Hide" toggle */
+.input-wrap {
+  position: relative;
+  display: grid;
+}
+
+.input-wrap input {
+  padding-right: 86px; /* space for toggle button */
+}
+
+.pw-toggle {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 30px;
+  padding: 0 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(46, 242, 255, 0.18);
+  background: rgba(8, 10, 22, 0.42);
+  color: rgba(46, 242, 255, 0.92);
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: transform 120ms ease, box-shadow 120ms ease, border-color 120ms ease,
+    background 120ms ease;
+}
+
+.pw-toggle:hover {
+  border-color: rgba(46, 242, 255, 0.35);
+  background: rgba(46, 242, 255, 0.08);
+}
+
+.pw-toggle:active {
+  transform: translateY(-50%) scale(0.98);
+}
+
+.pw-toggle:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(46, 242, 255, 0.16);
 }
 
 input {

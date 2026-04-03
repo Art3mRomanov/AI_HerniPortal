@@ -74,29 +74,67 @@
               />
             </div>
 
+            <div id="nicknameField" class="field" hidden>
+              <label class="label" for="nickname">Nickname</label>
+              <input
+                id="nickname"
+                name="nickname"
+                type="text"
+                autocomplete="username"
+                placeholder="e.g. NeonKid"
+                minlength="3"
+                maxlength="20"
+              />
+              <p class="hint">
+                3–20 chars. Letters/numbers/underscore. Must be unique.
+              </p>
+            </div>
+
             <div class="field">
               <label class="label" for="password">Password</label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                autocomplete="current-password"
-                placeholder="••••••••"
-                minlength="6"
-                required
-              />
+              <div class="input-wrap">
+                <input
+                  id="password"
+                  name="password"
+                  type="password"
+                  autocomplete="current-password"
+                  placeholder="••••••••"
+                  minlength="6"
+                  required
+                />
+                <button
+                  id="togglePassword"
+                  class="pw-toggle"
+                  type="button"
+                  aria-label="Show password"
+                  aria-pressed="false"
+                >
+                  Show
+                </button>
+              </div>
             </div>
 
             <div id="confirmField" class="field" hidden>
               <label class="label" for="passwordConfirm">Repeat password</label>
-              <input
-                id="passwordConfirm"
-                name="passwordConfirm"
-                type="password"
-                autocomplete="new-password"
-                placeholder="••••••••"
-                minlength="6"
-              />
+              <div class="input-wrap">
+                <input
+                  id="passwordConfirm"
+                  name="passwordConfirm"
+                  type="password"
+                  autocomplete="new-password"
+                  placeholder="••••••••"
+                  minlength="6"
+                />
+                <button
+                  id="togglePasswordConfirm"
+                  class="pw-toggle"
+                  type="button"
+                  aria-label="Show confirm password"
+                  aria-pressed="false"
+                >
+                  Show
+                </button>
+              </div>
             </div>
 
             <p
@@ -142,7 +180,7 @@
             </div>
             <div class="chip" aria-label="User status">
               <span class="chip__dot" aria-hidden="true"></span>
-              Logged in (mock)
+              <span id="userStatusText">Logged in</span>
             </div>
           </header>
 
