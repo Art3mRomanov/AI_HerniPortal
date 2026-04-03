@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI Game Portal</title>
+    <meta name="color-scheme" content="dark" />
+    <link rel="stylesheet" href="./css/style.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+
+    <header class="site-header">
+      <nav class="navbar" aria-label="Primary">
+        <div class="brand" aria-label="AI Game Portal">
+          <span class="brand__mark" aria-hidden="true"></span>
+          <span class="brand__text">AI Game Portal</span>
+        </div>
+        <div class="nav-actions">
+          <button id="logoutBtn" class="btn btn--ghost" type="button" hidden>
+            Logout
+          </button>
+        </div>
+      </nav>
+    </header>
+
+    <main id="main" class="container">
+      <!-- AUTH VIEW -->
+      <section
+        id="authView"
+        class="view view--centered"
+        aria-labelledby="authTitle"
+      >
+        <div class="card card--glow auth-card">
+          <div class="card__header">
+            <h1 id="authTitle" class="title">Login</h1>
+            <p class="subtitle">
+              Enter your credentials to access the arcade dashboard.
+            </p>
+          </div>
+
+          <form id="authForm" class="form" autocomplete="on">
+            <div class="field">
+              <label class="label" for="email">Email</label>
+              <input
+                id="email"
+                name="email"
+                type="email"
+                inputmode="email"
+                autocomplete="email"
+                placeholder="you@domain.com"
+                required
+              />
+            </div>
+
+            <div class="field">
+              <label class="label" for="password">Password</label>
+              <input
+                id="password"
+                name="password"
+                type="password"
+                autocomplete="current-password"
+                placeholder="••••••••"
+                minlength="6"
+                required
+              />
+            </div>
+
+            <button id="loginBtn" class="btn btn--primary" type="submit">
+              Login
+            </button>
+
+            <div class="form__row form__row--split">
+              <button class="btn btn--link" type="button" disabled>
+                Register (coming soon)
+              </button>
+              <button class="btn btn--link" type="button" disabled>
+                Forgot password (coming soon)
+              </button>
+            </div>
+
+            <p id="authHint" class="hint" role="status" aria-live="polite">
+              Demo: click Login to toggle the dashboard.
+            </p>
+          </form>
+        </div>
+      </section>
+
+      <!-- DASHBOARD VIEW -->
+      <section
+        id="dashboardView"
+        class="view"
+        aria-labelledby="dashTitle"
+        hidden
+      >
+        <div class="dashboard">
+          <header class="dash-header">
+            <div>
+              <h2 id="dashTitle" class="title title--sm">Dashboard</h2>
+              <p class="subtitle">
+                Choose a game and chase the leaderboard.
+              </p>
+            </div>
+            <div class="chip" aria-label="User status">
+              <span class="chip__dot" aria-hidden="true"></span>
+              Logged in (mock)
+            </div>
+          </header>
+
+          <div class="dash-content">
+            <section class="panel games" aria-label="Games">
+              <h3 class="panel__title">Games</h3>
+
+              <div class="game-grid" role="list">
+                <article class="game-card" role="listitem" tabindex="0">
+                  <div class="game-card__top">
+                    <h4 class="game-card__title">Snake</h4>
+                    <span class="badge">Classic</span>
+                  </div>
+                  <p class="game-card__desc">
+                    Neon bites, tighter turns, higher scores.
+                  </p>
+                  <div class="game-card__meta">
+                    <span class="meta">Mode: Arcade</span>
+                    <span class="meta">Status: Soon</span>
+                  </div>
+                </article>
+
+                <article class="game-card" role="listitem" tabindex="0">
+                  <div class="game-card__top">
+                    <h4 class="game-card__title">Pong</h4>
+                    <span class="badge badge--magenta">Duel</span>
+                  </div>
+                  <p class="game-card__desc">
+                    Precision paddles, impossible angles.
+                  </p>
+                  <div class="game-card__meta">
+                    <span class="meta">Mode: Versus</span>
+                    <span class="meta">Status: Soon</span>
+                  </div>
+                </article>
+
+                <article class="game-card" role="listitem" tabindex="0">
+                  <div class="game-card__top">
+                    <h4 class="game-card__title">Tetris</h4>
+                    <span class="badge badge--cyan">Stack</span>
+                  </div>
+                  <p class="game-card__desc">
+                    Clean clears, glowing combos, zero mercy.
+                  </p>
+                  <div class="game-card__meta">
+                    <span class="meta">Mode: Marathon</span>
+                    <span class="meta">Status: Soon</span>
+                  </div>
+                </article>
+              </div>
+            </section>
+
+            <aside class="panel leaderboard" aria-label="Leaderboard">
+              <div class="panel__head">
+                <h3 class="panel__title">Leaderboard</h3>
+                <span class="badge badge--outline">Mock</span>
+              </div>
+
+              <ol class="leader-list">
+                <li class="leader-row">
+                  <span class="leader-name">NEON_KID</span>
+                  <span class="leader-score">12,480</span>
+                </li>
+                <li class="leader-row">
+                  <span class="leader-name">BYTEBLADE</span>
+                  <span class="leader-score">11,020</span>
+                </li>
+                <li class="leader-row">
+                  <span class="leader-name">MAGENTA_MAGE</span>
+                  <span class="leader-score">9,775</span>
+                </li>
+                <li class="leader-row">
+                  <span class="leader-name">CYAN_CIPHER</span>
+                  <span class="leader-score">8,430</span>
+                </li>
+                <li class="leader-row">
+                  <span class="leader-name">ARC4DE_AI</span>
+                  <span class="leader-score">7,990</span>
+                </li>
+              </ol>
+
+              <div class="callout">
+                Connect Firebase later to load real users and scores.
+              </div>
+            </aside>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script defer src="./js/main.js"></script>
+  </body>
+</html>
