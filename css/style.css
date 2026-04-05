@@ -522,8 +522,26 @@ input:focus {
 
 .game-card__title {
   margin: 0;
-  font-size: 16px;
-  letter-spacing: 0.01em;
+  font-size: clamp(1.45rem, 3.4vw, 1.95rem);
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  line-height: 1.12;
+  text-transform: none;
+}
+
+.game-card__title--hadik {
+  color: #35ff8a;
+  text-shadow: 0 0 16px rgba(53, 255, 138, 0.55), 0 0 36px rgba(53, 255, 138, 0.28);
+}
+
+.game-card__title--pong {
+  color: #2ef2ff;
+  text-shadow: 0 0 16px rgba(46, 242, 255, 0.55), 0 0 36px rgba(46, 242, 255, 0.28);
+}
+
+.game-card__title--tetris {
+  color: #c77dff;
+  text-shadow: 0 0 16px rgba(199, 125, 255, 0.55), 0 0 40px rgba(122, 92, 255, 0.32);
 }
 
 .game-card__desc {
@@ -550,28 +568,56 @@ input:focus {
   border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
-/* Neon „online“ na kartách her (dashboard) */
+@keyframes meta-online-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 3px rgba(57, 255, 20, 0.2), 0 0 14px rgba(57, 255, 20, 0.12),
+      inset 0 0 0 1px rgba(57, 255, 20, 0.1);
+  }
+  50% {
+    box-shadow: 0 0 8px rgba(57, 255, 20, 0.32), 0 0 22px rgba(57, 255, 20, 0.18),
+      inset 0 0 0 1px rgba(57, 255, 20, 0.16);
+  }
+}
+
+@keyframes meta-online-dot {
+  0%,
+  100% {
+    box-shadow: 0 0 4px rgba(57, 255, 20, 0.35);
+    opacity: 0.88;
+  }
+  50% {
+    box-shadow: 0 0 10px rgba(57, 255, 20, 0.5), 0 0 18px rgba(57, 255, 20, 0.22);
+    opacity: 1;
+  }
+}
+
+/* Jemný neonový „online“ — pulz rámečku, text bez silné záře */
 .meta--online {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  color: #39ff14;
-  text-shadow: 0 0 5px #39ff14, 0 0 10px #39ff14, 0 0 20px rgba(57, 255, 20, 0.75);
-  background: rgba(57, 255, 20, 0.1);
-  border: 1px solid rgba(57, 255, 20, 0.45);
-  box-shadow: 0 0 12px rgba(57, 255, 20, 0.2), inset 0 0 20px rgba(57, 255, 20, 0.06);
+  font-weight: 600;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(200, 255, 185, 0.95);
+  text-shadow: none;
+  background: rgba(57, 255, 20, 0.06);
+  border: 1px solid rgba(57, 255, 20, 0.38);
+  border-radius: 10px;
+  padding: 7px 12px;
+  animation: meta-online-pulse 2.8s ease-in-out infinite;
 }
 
 .meta--online::before {
   content: "";
-  width: 8px;
-  height: 8px;
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
-  background: #39ff14;
-  box-shadow: 0 0 6px #39ff14, 0 0 12px #39ff14, 0 0 22px rgba(57, 255, 20, 0.9);
+  background: rgba(100, 255, 120, 0.95);
   flex-shrink: 0;
+  animation: meta-online-dot 2.8s ease-in-out infinite;
 }
 
 .badge {
@@ -789,6 +835,20 @@ input:focus {
   * {
     transition: none !important;
     scroll-behavior: auto !important;
+  }
+
+  .meta--online,
+  .meta--online::before {
+    animation: none !important;
+  }
+
+  .meta--online {
+    box-shadow: 0 0 6px rgba(57, 255, 20, 0.2), inset 0 0 0 1px rgba(57, 255, 20, 0.12);
+  }
+
+  .meta--online::before {
+    box-shadow: 0 0 6px rgba(57, 255, 20, 0.35);
+    opacity: 1;
   }
 }
 
