@@ -4,12 +4,14 @@ import {
   collection,
   doc,
   getDoc,
+  increment,
   limit,
   onSnapshot,
   orderBy,
   query,
   serverTimestamp,
   setDoc,
+  where,
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
 (() => {
@@ -48,7 +50,6 @@ import {
     throw new Error("Pong: required DOM elements not found.");
   }
 
-  const GAME_ID = "pong";
   const WIN_SCORE = 5;
 
   // Visual palette (match portal theme)
@@ -77,7 +78,6 @@ import {
 
   /**
    * Shows Firestore errors with full message (includes index URL when applicable).
-   * Uses orderBy(score) only + client filter to avoid needing a composite index on (game, score).
    */
   function showLeaderboardError(errOrMessage) {
     if (!errOrMessage) {
@@ -103,7 +103,7 @@ import {
       a.target = "_blank";
       a.rel = "noopener noreferrer";
       a.className = "index-link";
-      a.textContent = "Create index in Firebase Console";
+      a.textContent = "Vytvořit index ve Firebase Console";
       leaderboardError.appendChild(a);
     }
   }
@@ -121,7 +121,7 @@ import {
     if (!entries.length) {
       const li = document.createElement("li");
       li.className = "note";
-      li.textContent = "No scores yet. Be the first.";
+      li.textContent = "Zatím tu nic není. Buďte první.";
       globalList.appendChild(li);
       return;
     }
@@ -132,11 +132,12 @@ import {
 
       const name = document.createElement("span");
       name.className = "leader-name";
-      name.textContent = row.nickname || "Unknown";
+      name.textContent = row.nickname || "Neznámý";
 
       const scoreEl = document.createElement("span");
       scoreEl.className = "leader-score";
       scoreEl.textContent = String(row.score ?? 0);
+      scoreEl.title = "Kumulativní rozdíl branek (vaše góly − góly soupeře)";
 
       li.appendChild(name);
       li.appendChild(scoreEl);
@@ -144,26 +145,29 @@ import {
     }
   }
 
-  // Save best-per-user score to `leaderboard/{uid_pong}` if player wins.
-  async function saveGlobalScore(finalScore) {
+  /**
+   * Cumulative lifetime goal difference (your goals − AI goals) for this match,
+   * atomically added to leaderboard/{uid}_pong via Firestore increment.
+   */
+  async function saveCumulativeGoalDifference() {
     if (!canSave || !currentUser) return;
-    if (!Number.isFinite(finalScore) || finalScore <= 0) return;
+
+    const matchDiff = p1 - p2;
+    if (!Number.isFinite(matchDiff)) return;
 
     try {
-      const docId = `${currentUser.uid}_${GAME_ID}`;
-      const ref = doc(db, "leaderboard", docId);
-      const prev = await getDoc(ref);
-      const prevScore = prev.exists() ? Number(prev.data()?.score ?? 0) : 0;
-
-      if (finalScore <= prevScore) return;
-
-      await setDoc(ref, {
-        uid: currentUser.uid,
-        nickname: currentNickname || currentUser.email || "Unknown",
-        score: finalScore,
-        game: GAME_ID,
-        timestamp: serverTimestamp(),
-      });
+      const ref = doc(db, "leaderboard", `${currentUser.uid}_pong`);
+      await setDoc(
+        ref,
+        {
+          uid: currentUser.uid,
+          nickname: currentNickname || currentUser.email || "Neznámý",
+          game: "pong",
+          score: increment(matchDiff),
+          lastMatchAt: serverTimestamp(),
+        },
+        { merge: true }
+      );
     } catch (err) {
       // eslint-disable-next-line no-console
       console.error(err);
@@ -171,23 +175,23 @@ import {
     }
   }
 
-  // Live leaderboard: single-field orderBy(score) + filter by game (no composite index on game+score).
-  const LEADERBOARD_FETCH = 200;
-  try {
+  /**
+   * Pong-only rows; `score` is cumulative goal difference (player − AI), highest first.
+   * Composite index on (game, score) may be required in Firebase Console.
+   */
+  function subscribePongLeaderboard() {
     const q = query(
       collection(db, "leaderboard"),
+      where("game", "==", "pong"),
       orderBy("score", "desc"),
-      limit(LEADERBOARD_FETCH)
+      limit(10)
     );
 
-    onSnapshot(
+    return onSnapshot(
       q,
       (snap) => {
         showLeaderboardError("");
-        const rows = snap.docs
-          .map((d) => d.data())
-          .filter((row) => row.game === GAME_ID)
-          .slice(0, 10);
+        const rows = snap.docs.map((d) => d.data());
         renderGlobalTop10(rows);
       },
       (err) => {
@@ -196,6 +200,10 @@ import {
         showLeaderboardError(err);
       }
     );
+  }
+
+  try {
+    subscribePongLeaderboard();
   } catch (err) {
     // eslint-disable-next-line no-console
     console.error(err);
@@ -216,14 +224,15 @@ import {
     x: paddle.margin,
     y: (H - paddle.h) / 2,
     vy: 0,
-    speed: 380, // px/s
+    speed: 415, // px/s (nudged down slightly vs prior easy mode)
   };
 
   const bot = {
     x: W - paddle.margin - paddle.w,
     y: (H - paddle.h) / 2,
     vy: 0,
-    maxSpeed: 300, // fixed cap so player can win
+    maxSpeed: 252, // slightly higher cap = marginally harder
+    trackGain: 4.65, // slightly snappier tracking than easy mode
   };
 
   const ball = {
@@ -250,12 +259,12 @@ import {
   function setPaused(next) {
     if (over) return;
     paused = next;
-    pauseBtn.textContent = paused ? "Resume" : "Pause";
-    statusLine.textContent = paused ? "Paused • Esc to resume" : "W/S or Arrows • Esc to pause";
+    pauseBtn.textContent = paused ? "Pokračovat" : "Pauza";
+    statusLine.textContent = paused ? "Pauza • Esc = pokračovat" : "W/S nebo šipky • Esc = pauza";
     setOverlay({
       show: paused,
-      title: "Paused",
-      text: "Press Escape to resume.",
+      title: "Pauza",
+      text: "Stiskněte Esc pro pokračování.",
     });
   }
 
@@ -263,17 +272,21 @@ import {
     return Math.max(min, Math.min(max, v));
   }
 
-  function resetRound(directionToBot) {
+  /**
+   * Serve after a point: ball travels toward whoever scored.
+   * Player (left) scored → negative vx. AI (right) scored → positive vx.
+   * Small random vy so the serve isn’t perfectly horizontal.
+   * @param {'player' | 'ai'} scorer
+   */
+  function resetRound(scorer) {
     ball.x = W / 2;
     ball.y = H / 2;
 
-    const base = 340;
-    const angle = (Math.random() * 0.7 - 0.35) * Math.PI; // slight randomness
-    const vx = Math.cos(angle) * base;
-    const vy = Math.sin(angle) * base;
+    const speedX = 260 + Math.random() * 70;
+    ball.vx = scorer === "player" ? -speedX : speedX;
 
-    ball.vx = (directionToBot ? 1 : -1) * Math.max(220, Math.abs(vx));
-    ball.vy = clamp(vy, -260, 260);
+    ball.vy = (Math.random() * 2 - 1) * 150;
+    ball.vy = clamp(ball.vy, -200, 200);
   }
 
   function startMatch() {
@@ -286,7 +299,8 @@ import {
     over = false;
     setOverlay({ show: false });
     setPaused(false);
-    resetRound(true);
+    // Opening serve: toward AI (classic feel); alternates could use last scorer later
+    resetRound("ai");
   }
 
   function reflectFromPaddle(paddleY, isPlayerSide) {
@@ -303,33 +317,32 @@ import {
     ball.vy = Math.sin(angle) * speed;
   }
 
-  function computeWinScore() {
-    // Game design: reward winning harder matches.
-    // Score = (pointDiff * 100) + (paceBonus based on ball max speed seen)
-    const diff = p1 - p2; // positive
-    const pace = Math.min(ball.max, Math.hypot(ball.vx, ball.vy));
-    const paceBonus = Math.round(pace / 6); // ~50..120
-    return Math.max(1, diff * 100 + paceBonus);
-  }
-
   function endMatch(playerWon) {
     over = true;
     paused = false;
-    pauseBtn.textContent = "Pause";
+    pauseBtn.textContent = "Pauza";
+
+    const matchDiff = p1 - p2;
+    const diffLabel =
+      matchDiff > 0
+        ? `+${matchDiff}`
+        : matchDiff === 0
+          ? "0"
+          : String(matchDiff);
+
+    void saveCumulativeGoalDifference();
 
     if (playerWon) {
-      const score = computeWinScore();
       setOverlay({
         show: true,
-        title: "Victory",
-        text: `You won ${p1}–${p2}. Score: ${score}${canSave ? " (saved if best)" : ""}`,
+        title: "Výhra",
+        text: `Vyhráváte ${p1}–${p2}. Rozdíl v zápase: ${diffLabel}${canSave ? " (přičteno k celkovému skóre)" : ""}`,
       });
-      void saveGlobalScore(score);
     } else {
       setOverlay({
         show: true,
-        title: "Defeat",
-        text: `Bot wins ${p2}–${p1}. Try sharper angles.`,
+        title: "Prohra",
+        text: `Vyhrává AI ${p2}–${p1}. Rozdíl v zápase: ${diffLabel}${canSave ? " (přičteno k celkovému skóre)" : ""}`,
       });
     }
   }
@@ -338,10 +351,10 @@ import {
     // Player movement
     player.y = clamp(player.y + player.vy * dt, 0, H - paddle.h);
 
-    // Bot AI: follow ball with max speed + slight prediction
+    // Bot AI: track ball Y with capped speed (slightly softened so the player can win more often)
     const targetY = ball.y - paddle.h / 2;
     const dy = targetY - bot.y;
-    const desired = clamp(dy * 6, -bot.maxSpeed, bot.maxSpeed);
+    const desired = clamp(dy * bot.trackGain, -bot.maxSpeed, bot.maxSpeed);
     bot.y = clamp(bot.y + desired * dt, 0, H - paddle.h);
 
     // Ball
@@ -394,17 +407,17 @@ import {
       reflectFromPaddle(bot.y, false);
     }
 
-    // Scoring: ball passed edges
+    // Scoring: ball passed edges — next serve goes toward whoever scored
     if (ball.x + ball.r < 0) {
       p2 += 1;
       p2ScoreEl.textContent = String(p2);
       if (p2 >= WIN_SCORE) endMatch(false);
-      else resetRound(false);
+      else resetRound("ai");
     } else if (ball.x - ball.r > W) {
       p1 += 1;
       p1ScoreEl.textContent = String(p1);
       if (p1 >= WIN_SCORE) endMatch(true);
-      else resetRound(true);
+      else resetRound("player");
     }
   }
 
@@ -476,6 +489,15 @@ import {
         return;
       }
 
+      if (
+        e.key === "ArrowUp" ||
+        e.key === "ArrowDown" ||
+        e.key === " " ||
+        e.key === "Spacebar"
+      ) {
+        e.preventDefault();
+      }
+
       keys.add(e.key);
       updatePlayerVelocity();
     },
@@ -491,25 +513,29 @@ import {
   playAgainBtn.addEventListener("click", () => startMatch());
 
   // Auth integration
-  setAuthNote("Checking login…");
+  setAuthNote("Kontrola přihlášení…");
   onAuthStateChanged(auth, async (user) => {
     currentUser = user;
     currentNickname = "";
     canSave = false;
 
     if (!user) {
-      setAuthNote("Log in to save your score.");
+      setAuthNote("Přihlaste se pro uložení skóre.");
       return;
     }
 
     try {
       currentNickname = await fetchNicknameForUser(user.uid);
       canSave = Boolean(currentNickname);
-      setAuthNote(canSave ? `Saving as ${currentNickname}.` : "Log in to save your score.");
+      setAuthNote(
+        canSave
+          ? `Přihlášen jako ${currentNickname} — každý zápas upraví celkový rozdíl branek.`
+          : "Přihlaste se pro uložení skóre."
+      );
     } catch (err) {
       // eslint-disable-next-line no-console
       console.error(err);
-      setAuthNote("Log in to save your score.");
+      setAuthNote("Přihlaste se pro uložení skóre.");
     }
   });
 

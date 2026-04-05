@@ -114,7 +114,7 @@ import {
       a.target = "_blank";
       a.rel = "noopener noreferrer";
       a.className = "index-link";
-      a.textContent = "Create index in Firebase Console";
+      a.textContent = "Vytvořit index ve Firebase Console";
       leaderboardError.appendChild(a);
     }
   }
@@ -136,7 +136,7 @@ import {
     if (!entries.length) {
       const li = document.createElement("li");
       li.className = "note";
-      li.textContent = "No scores yet. Be the first.";
+      li.textContent = "Zatím tu nic není. Buďte první.";
       globalList.appendChild(li);
       return;
     }
@@ -147,7 +147,7 @@ import {
 
       const name = document.createElement("span");
       name.className = "leader-name";
-      name.textContent = row.nickname || "Unknown";
+      name.textContent = row.nickname || "Neznámý";
 
       const scoreEl = document.createElement("span");
       scoreEl.className = "leader-score";
@@ -175,7 +175,7 @@ import {
 
       await setDoc(ref, {
         uid: currentUser.uid,
-        nickname: currentNickname || currentUser.email || "Unknown",
+        nickname: currentNickname || currentUser.email || "Neznámý",
         score: finalScore,
         game: GAME_ID,
         timestamp: serverTimestamp(),
@@ -202,12 +202,12 @@ import {
 
   function setPaused(nextPaused) {
     paused = nextPaused;
-    pauseBtn.textContent = paused ? "Resume" : "Pause";
+    pauseBtn.textContent = paused ? "Pokračovat" : "Pauza";
     if (!gameOver) {
       setOverlay({
         show: paused,
-        title: "Paused",
-        text: "Press Space or Esc to resume.",
+        title: "Pauza",
+        text: "Pokračujte mezerníkem nebo Esc.",
       });
     }
   }
@@ -272,10 +272,19 @@ import {
 
   function onKeyDown(e) {
     const k = e.key;
-    const lower = k.length === 1 ? k.toLowerCase() : k;
 
-    if (lower === " " || k === "Escape") {
+    if (
+      k === "ArrowUp" ||
+      k === "ArrowDown" ||
+      k === "ArrowLeft" ||
+      k === "ArrowRight" ||
+      k === " " ||
+      k === "Spacebar"
+    ) {
       e.preventDefault();
+    }
+
+    if (k === " " || k === "Spacebar" || k === "Escape") {
       if (gameOver) return;
       setPaused(!paused);
       return;
@@ -283,25 +292,22 @@ import {
 
     if (gameOver) return;
 
+    const lower = k.toLowerCase();
     switch (lower) {
       case "arrowup":
       case "w":
-        e.preventDefault();
         trySetDirection(0, -1);
         break;
       case "arrowdown":
       case "s":
-        e.preventDefault();
         trySetDirection(0, 1);
         break;
       case "arrowleft":
       case "a":
-        e.preventDefault();
         trySetDirection(-1, 0);
         break;
       case "arrowright":
       case "d":
-        e.preventDefault();
         trySetDirection(1, 0);
         break;
       default:
@@ -317,7 +323,7 @@ import {
 
     // Wall collision
     if (!isInside(nextHead)) {
-      endGame("Game Over", "You hit the wall. Try again?");
+      endGame("Konec hry", "Narazil jsi do zdi. Zkusíš to znovu?");
       return;
     }
 
@@ -325,7 +331,7 @@ import {
     const willEat = pointsEqual(nextHead, food);
     const bodyToCheck = willEat ? snake : snake.slice(0, -1);
     if (bodyToCheck.some((p) => pointsEqual(p, nextHead))) {
-      endGame("Game Over", "You ran into yourself. Try again?");
+      endGame("Konec hry", "Narazil jsi do sebe. Zkusíš to znovu?");
       return;
     }
 
@@ -345,7 +351,7 @@ import {
     gameOver = true;
     setPaused(false);
     setOverlay({ show: true, title, text });
-    pauseBtn.textContent = "Pause";
+    pauseBtn.textContent = "Pauza";
     void saveGlobalScore(score);
   }
 
@@ -404,7 +410,7 @@ import {
       ctx.fillStyle = "rgba(245, 247, 255, 0.85)";
       ctx.font = "800 14px ui-sans-serif, system-ui";
       ctx.textAlign = "right";
-      ctx.fillText("PAUSED", ox + BOARD_PX - 10, oy + 20);
+      ctx.fillText("PAUZA", ox + BOARD_PX - 10, oy + 20);
     }
   }
 
@@ -470,25 +476,29 @@ import {
   }
 
   // Auth integration: determine if we can save scores + fetch nickname
-  setAuthNote("Checking login…");
+  setAuthNote("Kontrola přihlášení…");
   onAuthStateChanged(auth, async (user) => {
     currentUser = user;
     currentNickname = "";
     canSave = false;
 
     if (!user) {
-      setAuthNote("Log in to save your score.");
+      setAuthNote("Přihlaste se pro uložení skóre.");
       return;
     }
 
     try {
       currentNickname = await fetchNicknameForUser(user.uid);
       canSave = Boolean(currentNickname);
-      setAuthNote(canSave ? `Saving as ${currentNickname}.` : "Log in to save your score.");
+      setAuthNote(
+        canSave
+          ? `Ukládá se jako ${currentNickname}.`
+          : "Přihlaste se pro uložení skóre."
+      );
     } catch (err) {
       // eslint-disable-next-line no-console
       console.error(err);
-      setAuthNote("Log in to save your score.");
+      setAuthNote("Přihlaste se pro uložení skóre.");
     }
   });
 

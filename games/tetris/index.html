@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Snake | AI Herní portál</title>
+    <title>Tetris | AI Herní portál</title>
     <meta name="color-scheme" content="dark" />
     <link rel="stylesheet" href="./style.css" />
   </head>
@@ -11,17 +11,18 @@
     <a class="skip-link" href="#main">Přeskočit na obsah</a>
 
     <header class="site-header">
-      <nav class="navbar" aria-label="Navigace — Snake">
+      <nav class="navbar" aria-label="Navigace — Tetris">
         <div class="brand" aria-label="AI Herní portál">
           <span class="brand__mark" aria-hidden="true"></span>
           <div class="brand__stack">
             <span class="brand__text">AI Herní portál</span>
-            <span class="brand__sub">Snake</span>
+            <span class="brand__sub">Tetris</span>
           </div>
         </div>
 
         <div class="nav-actions">
-          <a class="btn btn--ghost" href="../../index.html"> Zpět na hlavní stránku</a>
+          <button id="pauseBtn" class="btn btn--primary" type="button">Pauza</button>
+          <a class="btn btn--ghost" href="../../index.html">Zpět na hlavní stránku</a>
         </div>
       </nav>
     </header>
@@ -29,23 +30,28 @@
     <main id="main" class="container">
       <section class="panel">
         <header class="hud">
-          <div class="scores">
-            <div class="score">
-              <span class="score__label">Aktuální skóre</span>
-              <span id="scoreNow" class="score__value">0</span>
+          <div class="stats">
+            <div class="stat">
+              <span class="stat__label">Skóre</span>
+              <span id="scoreNow" class="stat__value">0</span>
             </div>
-            <div class="score">
-              <span class="score__label">Nejvyšší skóre</span>
-              <span id="scoreBest" class="score__value score__value--cyan">0</span>
+            <div class="stat">
+              <span class="stat__label">Řádky</span>
+              <span id="linesNow" class="stat__value stat__value--cyan">0</span>
+            </div>
+            <div class="stat">
+              <span class="stat__label">Úroveň</span>
+              <span id="levelNow" class="stat__value">1</span>
+            </div>
+            <div class="stat">
+              <span class="stat__label">Nejlepší (lokální)</span>
+              <span id="scoreBest" class="stat__value stat__value--magenta">0</span>
             </div>
           </div>
-
           <div class="controls">
-            <button id="pauseBtn" class="btn btn--primary" type="button">
-              Pauza
-            </button>
             <div class="hint">
-              Pohyb: <kbd>WASD</kbd> / <kbd>šipky</kbd> • Pauza: <kbd>mezerník</kbd> /
+              Pohyb <kbd>←</kbd><kbd>→</kbd> / <kbd>A</kbd><kbd>D</kbd> • Otočení <kbd>↑</kbd> /
+              <kbd>W</kbd> • Pád <kbd>↓</kbd><kbd>S</kbd> • Tvrdý pád <kbd>mezerník</kbd> • Pauza
               <kbd>Esc</kbd>
             </div>
           </div>
@@ -55,18 +61,15 @@
           <div class="stage">
             <canvas
               id="game"
-              width="420"
-              height="420"
-              tabindex="0"
-              aria-label="Hrací plocha Snake"
+              width="300"
+              height="450"
+              aria-label="Hrací plocha Tetris"
             ></canvas>
 
             <div id="overlay" class="overlay" hidden>
               <div class="overlay__card">
                 <h1 id="overlayTitle" class="overlay__title">Konec hry</h1>
-                <p id="overlayText" class="overlay__text">
-                  Narazil jsi. Chceš další kolo?
-                </p>
+                <p id="overlayText" class="overlay__text">Kostky dosáhly vrcholu.</p>
                 <div class="overlay__actions">
                   <button id="playAgainBtn" class="btn btn--primary" type="button">
                     Hrát znovu
@@ -77,9 +80,9 @@
             </div>
           </div>
 
-          <aside class="leaderboard" aria-label="Globální žebříček">
+          <aside class="leaderboard" aria-label="Globální žebříček Tetris">
             <div class="leaderboard__head">
-              <h2 class="leaderboard__title">Globální top 10</h2>
+              <h2 class="leaderboard__title">Tetris — globální top 10</h2>
               <span class="badge badge--outline">Živě</span>
             </div>
 
@@ -87,9 +90,15 @@
               Kontrola přihlášení…
             </p>
 
-            <ol id="globalList" class="leader-list" aria-label="Nejlepší skóre"></ol>
+            <ol id="globalList" class="leader-list" aria-label="Top 10 skóre Tetris"></ol>
 
-            <p id="leaderboardError" class="note note--error" role="status" aria-live="polite" hidden>
+            <p
+              id="leaderboardError"
+              class="note note--error"
+              role="status"
+              aria-live="polite"
+              hidden
+            >
               Chyba žebříčku.
             </p>
           </aside>
@@ -97,7 +106,7 @@
 
         <footer class="footer">
           <span class="footer__note">
-            Tip: neotáčejte se okamžitě o 180° — platí klasická pravidla.
+            7 tvarů • neon • +10 za položení kostky • řady: 100 / 200 / 300 / 400 bodů
           </span>
         </footer>
       </section>

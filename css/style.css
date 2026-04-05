@@ -428,8 +428,8 @@ input:focus {
   width: 8px;
   height: 8px;
   border-radius: 999px;
-  background: var(--green);
-  box-shadow: 0 0 10px rgba(53, 255, 138, 0.35);
+  background: #39ff14;
+  box-shadow: 0 0 6px #39ff14, 0 0 14px #39ff14, 0 0 24px rgba(57, 255, 20, 0.55);
 }
 
 .dash-content {
@@ -541,6 +541,30 @@ input:focus {
   border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
+/* Neon „online“ na kartách her (dashboard) */
+.meta--online {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: #39ff14;
+  text-shadow: 0 0 5px #39ff14, 0 0 10px #39ff14, 0 0 20px rgba(57, 255, 20, 0.75);
+  background: rgba(57, 255, 20, 0.1);
+  border: 1px solid rgba(57, 255, 20, 0.45);
+  box-shadow: 0 0 12px rgba(57, 255, 20, 0.2), inset 0 0 20px rgba(57, 255, 20, 0.06);
+}
+
+.meta--online::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #39ff14;
+  box-shadow: 0 0 6px #39ff14, 0 0 12px #39ff14, 0 0 22px rgba(57, 255, 20, 0.9);
+  flex-shrink: 0;
+}
+
 .badge {
   font-size: 11px;
   letter-spacing: 0.08em;
@@ -604,6 +628,134 @@ input:focus {
   color: rgba(245, 247, 255, 0.78);
   font-size: 12px;
   line-height: 1.45;
+}
+
+/* Global Rankings (dashboard) */
+.rankings__hint {
+  margin: 0 0 14px;
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.rank-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 14px;
+  padding: 6px;
+  border-radius: var(--r-md);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(46, 242, 255, 0.12);
+}
+
+.rank-tab {
+  height: 38px;
+  border-radius: 10px;
+  border: 1px solid rgba(46, 242, 255, 0.14);
+  background: rgba(8, 10, 22, 0.45);
+  color: rgba(245, 247, 255, 0.72);
+  font-weight: 800;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: transform 120ms ease, box-shadow 120ms ease, border-color 120ms ease,
+    background 120ms ease, color 120ms ease;
+}
+
+.rank-tab:hover {
+  border-color: rgba(46, 242, 255, 0.28);
+  color: rgba(245, 247, 255, 0.88);
+}
+
+.rank-tab.is-active {
+  color: rgba(245, 247, 255, 0.95);
+  background: linear-gradient(90deg, rgba(46, 242, 255, 0.2), rgba(255, 43, 214, 0.12));
+  border-color: rgba(46, 242, 255, 0.38);
+  box-shadow: 0 0 0 1px rgba(255, 43, 214, 0.1), 0 0 20px rgba(46, 242, 255, 0.12);
+}
+
+.rank-tab:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(46, 242, 255, 0.2);
+}
+
+.rankings-panel {
+  min-height: 200px;
+}
+
+.rankings-table-wrap {
+  border-radius: var(--r-md);
+  border: 1px solid rgba(46, 242, 255, 0.14);
+  background: rgba(8, 10, 22, 0.45);
+  overflow: hidden;
+}
+
+.rankings-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.rankings-table thead th {
+  text-align: left;
+  padding: 10px 12px;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(245, 247, 255, 0.55);
+  border-bottom: 1px solid rgba(46, 242, 255, 0.14);
+  background: rgba(18, 22, 46, 0.55);
+}
+
+.rankings-table tbody td {
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.rankings-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.rankings-table__rank {
+  width: 2.25rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 800;
+  color: rgba(122, 92, 255, 0.95);
+}
+
+.rankings-table__name {
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  color: rgba(245, 247, 255, 0.9);
+}
+
+.rankings-table__score {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-weight: 800;
+  color: rgba(46, 242, 255, 0.92);
+  text-shadow: 0 0 14px rgba(46, 242, 255, 0.2);
+}
+
+.rankings-table__empty {
+  text-align: center;
+  color: rgba(245, 247, 255, 0.55);
+  font-size: 13px;
+  padding: 28px 16px !important;
+}
+
+.rankings-error {
+  margin-top: 12px;
+  margin-bottom: 0;
+}
+
+.rankings-error .rankings-error__link {
+  display: inline-block;
+  margin-top: 8px;
+  color: rgba(46, 242, 255, 0.95);
+  font-weight: 700;
 }
 
 /* Responsive layout: leaderboard sidebar on wide screens */

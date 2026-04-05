@@ -1,28 +1,28 @@
 <!doctype html>
-<html lang="en">
+<html lang="cs">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Pong | AI Game Portal</title>
+    <title>Pong | AI Herní portál</title>
     <meta name="color-scheme" content="dark" />
     <link rel="stylesheet" href="./style.css" />
   </head>
   <body>
-    <a class="skip-link" href="#main">Skip to content</a>
+    <a class="skip-link" href="#main">Přeskočit na obsah</a>
 
     <header class="site-header">
-      <nav class="navbar" aria-label="Pong navigation">
-        <div class="brand" aria-label="AI Game Portal">
+      <nav class="navbar" aria-label="Navigace — Pong">
+        <div class="brand" aria-label="AI Herní portál">
           <span class="brand__mark" aria-hidden="true"></span>
           <div class="brand__stack">
-            <span class="brand__text">AI Game Portal</span>
-            <span class="brand__sub">Pong (vs AI)</span>
+            <span class="brand__text">AI Herní portál</span>
+            <span class="brand__sub">Pong (proti AI)</span>
           </div>
         </div>
 
         <div class="nav-actions">
-          <button id="pauseBtn" class="btn btn--primary" type="button">Pause</button>
-          <a class="btn btn--ghost" href="../../index.html">Return to Portal</a>
+          <button id="pauseBtn" class="btn btn--primary" type="button">Pauza</button>
+          <a class="btn btn--ghost" href="../../index.html">Zpět na hlavní stránku</a>
         </div>
       </nav>
     </header>
@@ -30,17 +30,17 @@
     <main id="main" class="container">
       <section class="panel">
         <header class="hud">
-          <div class="scoreboard" aria-label="Scoreboard">
+          <div class="scoreboard" aria-label="Skóre">
             <div class="side side--player">
-              <span class="side__label">You</span>
+              <span class="side__label">Vy</span>
               <span id="p1Score" class="side__score">0</span>
             </div>
             <div class="mid">
-              <span class="mid__goal">First to 5</span>
-              <span id="statusLine" class="mid__status">W/S or Arrows • Esc to pause</span>
+              <span class="mid__goal">První na 5</span>
+              <span id="statusLine" class="mid__status">W/S nebo šipky • Esc = pauza</span>
             </div>
             <div class="side side--bot">
-              <span class="side__label">Bot</span>
+              <span class="side__label">AI</span>
               <span id="p2Score" class="side__score">0</span>
             </div>
           </div>
@@ -48,33 +48,33 @@
 
         <div class="content">
           <div class="stage">
-            <canvas id="game" width="720" height="420" aria-label="Pong playfield"></canvas>
+            <canvas id="game" width="720" height="420" aria-label="Hrací plocha Pong"></canvas>
 
             <div id="overlay" class="overlay" hidden>
               <div class="overlay__card">
-                <h1 id="overlayTitle" class="overlay__title">Game Over</h1>
-                <p id="overlayText" class="overlay__text">Run it back?</p>
+                <h1 id="overlayTitle" class="overlay__title">Konec zápasu</h1>
+                <p id="overlayText" class="overlay__text">Ještě jednou?</p>
                 <div class="overlay__actions">
                   <button id="playAgainBtn" class="btn btn--primary" type="button">
-                    Play Again
+                    Hrát znovu
                   </button>
-                  <a class="btn btn--ghost" href="../../index.html">Return to Portal</a>
+                  <a class="btn btn--ghost" href="../../index.html">Zpět na hlavní stránku</a>
                 </div>
               </div>
             </div>
           </div>
 
-          <aside class="leaderboard" aria-label="Global leaderboard">
+          <aside class="leaderboard" aria-label="Žebříček rozdílu branek — Pong">
             <div class="leaderboard__head">
-              <h2 class="leaderboard__title">Global Top 10 (Pong)</h2>
-              <span class="badge badge--outline">Live</span>
+              <h2 class="leaderboard__title">Pong — celkový rozdíl branek (top 10)</h2>
+              <span class="badge badge--outline">Živě</span>
             </div>
 
             <p id="authNote" class="note" role="status" aria-live="polite">
-              Checking login…
+              Kontrola přihlášení…
             </p>
 
-            <ol id="globalList" class="leader-list" aria-label="Top scores list"></ol>
+            <ol id="globalList" class="leader-list" aria-label="Top 10 podle kumulativního rozdílu branek"></ol>
 
             <p
               id="leaderboardError"
@@ -83,14 +83,14 @@
               aria-live="polite"
               hidden
             >
-              Leaderboard error.
+              Chyba žebříčku.
             </p>
           </aside>
         </div>
 
         <footer class="footer">
           <span class="footer__note">
-            Player: neon blue • Bot: neon pink • Ball: neon white
+            Hráč: neon modrá • AI: neon růžová • míček: neon bílá
           </span>
         </footer>
       </section>

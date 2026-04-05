@@ -18,6 +18,7 @@ import {
   getDoc,
   getDocs,
   limit,
+  orderBy,
   query,
   serverTimestamp,
   setDoc,
@@ -48,6 +49,14 @@ const submitBtn = $("submitBtn");
 const guestBtn = $("guestBtn");
 const authError = $("authError");
 
+const rankingsTabSnake = $("rankingsTabSnake");
+const rankingsTabPong = $("rankingsTabPong");
+const rankingsTabTetris = $("rankingsTabTetris");
+const rankingsPanel = $("rankingsPanel");
+const globalRankingsBody = $("globalRankingsBody");
+const rankingsScoreHeader = $("rankingsScoreHeader");
+const rankingsError = $("rankingsError");
+
 if (
   !authView ||
   !dashboardView ||
@@ -63,7 +72,14 @@ if (
   !togglePasswordBtn ||
   !submitBtn ||
   !guestBtn ||
-  !authError
+  !authError ||
+  !rankingsTabSnake ||
+  !rankingsTabPong ||
+  !rankingsTabTetris ||
+  !rankingsPanel ||
+  !globalRankingsBody ||
+  !rankingsScoreHeader ||
+  !rankingsError
 ) {
   throw new Error("Required UI elements are missing from index.html");
 }
@@ -72,12 +88,181 @@ let mode = /** @type {"login" | "register"} */ ("login");
 let isGuest = false;
 let currentNickname = "";
 
+/** @type {"snake" | "pong" | "tetris"} */
+let activeRankGame = "snake";
+
+/** @type {Record<string, Record<string, unknown>[]>} */
+let leaderboardCache = { snake: [], pong: [], tetris: [] };
+
+let rankingsLoading = false;
+
+/** @type {HTMLButtonElement[]} */
+const rankTabButtons = [rankingsTabSnake, rankingsTabPong, rankingsTabTetris];
+
+const SCORE_HEADER_LABEL = {
+  snake: "Skóre",
+  tetris: "Skóre",
+  pong: "Rozdíl branek",
+};
+
+function setRankingsError(message) {
+  if (!message) {
+    rankingsError.hidden = true;
+    rankingsError.textContent = "";
+    rankingsError.replaceChildren();
+    return;
+  }
+  rankingsError.hidden = false;
+  rankingsError.replaceChildren();
+  const urlMatch = String(message).match(/https:\/\/console\.firebase\.google\.com\/[^\s)]+/);
+  const text = urlMatch ? String(message).split(urlMatch[0])[0].trim() : String(message);
+  rankingsError.appendChild(document.createTextNode(text));
+  if (urlMatch) {
+    rankingsError.appendChild(document.createElement("br"));
+    const a = document.createElement("a");
+    a.href = urlMatch[0];
+    a.target = "_blank";
+    a.rel = "noopener noreferrer";
+    a.className = "rankings-error__link";
+    a.textContent = "Vytvořit složený index (Firestore)";
+    rankingsError.appendChild(a);
+  }
+}
+
+function formatScoreCell(gameId, raw) {
+  const n = Number(raw);
+  if (!Number.isFinite(n)) return "—";
+  if (gameId === "pong") {
+    const abs = Math.abs(n);
+    const formatted = abs.toLocaleString();
+    if (n > 0) return `+${formatted}`;
+    if (n < 0) return `−${formatted}`;
+    return "0";
+  }
+  return n.toLocaleString();
+}
+
+function renderGlobalRankingsTable() {
+  globalRankingsBody.replaceChildren();
+  rankingsScoreHeader.textContent = SCORE_HEADER_LABEL[activeRankGame] ?? "Skóre";
+
+  if (rankingsLoading) {
+    const tr = document.createElement("tr");
+    const td = document.createElement("td");
+    td.colSpan = 3;
+    td.className = "rankings-table__empty";
+    td.textContent = "Načítání žebříčku…";
+    tr.appendChild(td);
+    globalRankingsBody.appendChild(tr);
+    return;
+  }
+
+  const rows = leaderboardCache[activeRankGame] ?? [];
+  if (rows.length === 0) {
+    const tr = document.createElement("tr");
+    const td = document.createElement("td");
+    td.colSpan = 3;
+    td.className = "rankings-table__empty";
+    td.textContent = "Pro tuto hru zatím nikdo nehrál.";
+    tr.appendChild(td);
+    globalRankingsBody.appendChild(tr);
+    return;
+  }
+
+  rows.forEach((row, i) => {
+    const tr = document.createElement("tr");
+    tr.className = "rankings-table__row";
+
+    const rankTd = document.createElement("td");
+    rankTd.className = "rankings-table__rank";
+    rankTd.textContent = String(i + 1);
+
+    const nameTd = document.createElement("td");
+    nameTd.className = "rankings-table__name";
+    const nick = row.nickname;
+    nameTd.textContent = typeof nick === "string" && nick.trim() ? nick : "Neznámý";
+
+    const scoreTd = document.createElement("td");
+    scoreTd.className = "rankings-table__score";
+    scoreTd.textContent = formatScoreCell(activeRankGame, row.score);
+
+    tr.append(rankTd, nameTd, scoreTd);
+    globalRankingsBody.appendChild(tr);
+  });
+}
+
+function setActiveRankTab(gameId) {
+  activeRankGame = gameId;
+  for (const btn of rankTabButtons) {
+    const g = btn.dataset.game;
+    const on = g === gameId;
+    btn.classList.toggle("is-active", on);
+    btn.setAttribute("aria-selected", String(on));
+  }
+  const activeBtn = rankTabButtons.find((b) => b.dataset.game === gameId);
+  if (activeBtn && rankingsPanel) {
+    rankingsPanel.setAttribute("aria-labelledby", activeBtn.id);
+  }
+  renderGlobalRankingsTable();
+}
+
+/**
+ * Loads top 5 rows per game from `leaderboard` (separate query per game).
+ * Pong `score` is cumulative goal difference (player − AI), per games/pong/game.js.
+ */
+async function fetchGlobalLeaderboards() {
+  setRankingsError("");
+  rankingsLoading = true;
+  renderGlobalRankingsTable();
+
+  const gameIds = /** @type {const} */ (["snake", "pong", "tetris"]);
+  const errors = [];
+
+  await Promise.all(
+    gameIds.map(async (gameId) => {
+      try {
+        const q = query(
+          collection(db, "leaderboard"),
+          where("game", "==", gameId),
+          orderBy("score", "desc"),
+          limit(5)
+        );
+        const snap = await getDocs(q);
+        leaderboardCache[gameId] = snap.docs.map((d) => d.data());
+      } catch (err) {
+        leaderboardCache[gameId] = [];
+        errors.push(`${gameId}: ${err?.message ?? err}`);
+        // eslint-disable-next-line no-console
+        console.error("Leaderboard fetch failed:", gameId, err);
+      }
+    })
+  );
+
+  rankingsLoading = false;
+  if (errors.length) {
+    setRankingsError(
+      errors.length === gameIds.length
+        ? `Žebříček se nepodařilo načíst. ${errors[0]}`
+        : `Některé žebříčky se nepodařilo načíst: ${errors.join(" · ")}`
+    );
+  }
+  renderGlobalRankingsTable();
+}
+
+for (const btn of rankTabButtons) {
+  btn.addEventListener("click", () => {
+    const gameId = btn.dataset.game;
+    if (!gameId || gameId === activeRankGame) return;
+    setActiveRankTab(/** @type {"snake"|"pong"|"tetris"} */ (gameId));
+  });
+}
+
 function wirePasswordToggle(inputEl, toggleBtn, { labelBase }) {
   const setVisible = (visible) => {
     inputEl.type = visible ? "text" : "password";
-    toggleBtn.textContent = visible ? "Hide" : "Show";
+    toggleBtn.textContent = visible ? "Skrýt" : "Zobrazit";
     toggleBtn.setAttribute("aria-pressed", String(visible));
-    toggleBtn.setAttribute("aria-label", `${visible ? "Hide" : "Show"} ${labelBase}`);
+    toggleBtn.setAttribute("aria-label", `${visible ? "Skrýt" : "Zobrazit"}: ${labelBase}`);
   };
 
   setVisible(false);
@@ -126,7 +311,7 @@ function setMode(nextMode) {
   modeLoginBtn.setAttribute("aria-selected", String(!isRegister));
   modeRegisterBtn.setAttribute("aria-selected", String(isRegister));
 
-  submitBtn.textContent = isRegister ? "Create account" : "Login";
+  submitBtn.textContent = isRegister ? "Vytvořit účet" : "Přihlásit se";
 
   // Improve autocomplete semantics for password field
   passwordEl.autocomplete = isRegister ? "new-password" : "current-password";
@@ -139,6 +324,9 @@ function setView({ showDashboard }) {
   authView.hidden = showDashboard;
   dashboardView.hidden = !showDashboard;
   logoutBtn.hidden = !showDashboard;
+  if (showDashboard) {
+    void fetchGlobalLeaderboards();
+  }
 }
 
 function setUserStatusLabel(label) {
@@ -151,20 +339,20 @@ function friendlyAuthError(err) {
 
   switch (code) {
     case "auth/invalid-email":
-      return "Invalid email address.";
+      return "Neplatná e-mailová adresa.";
     case "auth/user-not-found":
-      return "User not found.";
+      return "Uživatel nenalezen.";
     case "auth/wrong-password":
     case "auth/invalid-credential":
-      return "Wrong email or password.";
+      return "Špatný e-mail nebo heslo.";
     case "auth/email-already-in-use":
-      return "This email is already registered. Try logging in.";
+      return "Tento e-mail je už registrovaný. Zkuste se přihlásit.";
     case "auth/weak-password":
-      return "Password is too weak. Use at least 6 characters.";
+      return "Heslo je příliš slabé. Použijte alespoň 6 znaků.";
     case "auth/too-many-requests":
-      return "Too many attempts. Please try again later.";
+      return "Příliš mnoho pokusů. Zkuste to později.";
     default:
-      return "Something went wrong. Please try again.";
+      return "Něco se pokazilo. Zkuste to znovu.";
   }
 }
 
@@ -174,11 +362,11 @@ function normalizeNickname(raw) {
 
 function validateNickname(raw) {
   const nickname = raw.trim();
-  if (!nickname) return { ok: false, message: "Please choose a nickname." };
-  if (nickname.length < 3) return { ok: false, message: "Nickname must be at least 3 characters." };
-  if (nickname.length > 20) return { ok: false, message: "Nickname must be 20 characters or less." };
+  if (!nickname) return { ok: false, message: "Zvolte přezdívku." };
+  if (nickname.length < 3) return { ok: false, message: "Přezdívka musí mít alespoň 3 znaky." };
+  if (nickname.length > 20) return { ok: false, message: "Přezdívka může mít nejvýše 20 znaků." };
   if (!/^[a-zA-Z0-9_]+$/.test(nickname)) {
-    return { ok: false, message: "Nickname can use only letters, numbers, and underscore." };
+    return { ok: false, message: "Přezdívka smí obsahovat jen písmena, čísla a podtržítko." };
   }
   return { ok: true, nickname };
 }
@@ -219,8 +407,8 @@ modeRegisterBtn.addEventListener("click", () => setMode("register"));
 guestBtn.addEventListener("click", () => {
   setError("");
   isGuest = true;
-  currentNickname = "Guest";
-  setUserStatusLabel("Guest");
+  currentNickname = "Host";
+  setUserStatusLabel("Host");
   setView({ showDashboard: true });
   dashboardView.scrollIntoView({ block: "start", behavior: "smooth" });
 });
@@ -232,7 +420,7 @@ logoutBtn.addEventListener("click", async () => {
   if (isGuest) {
     isGuest = false;
     currentNickname = "";
-    setUserStatusLabel("Logged out");
+    setUserStatusLabel("Odhlášen");
     authForm.reset();
     setView({ showDashboard: false });
     emailEl.focus();
@@ -244,7 +432,7 @@ logoutBtn.addEventListener("click", async () => {
     setBusy(true);
     await signOut(auth);
   } catch (err) {
-    setError("Logout failed. Please try again.");
+    setError("Odhlášení se nezdařilo. Zkuste to znovu.");
     // eslint-disable-next-line no-console
     console.error(err);
   } finally {
@@ -262,7 +450,7 @@ authForm.addEventListener("submit", async (e) => {
   const passwordConfirm = passwordConfirmEl?.value ?? "";
 
   if (!email || !password) {
-    setError("Please enter your email and password.");
+    setError("Zadejte e-mail a heslo.");
     return;
   }
 
@@ -274,15 +462,15 @@ authForm.addEventListener("submit", async (e) => {
     }
 
     if (password.length < 6) {
-      setError("Password must be at least 6 characters.");
+      setError("Heslo musí mít alespoň 6 znaků.");
       return;
     }
     if (!passwordConfirm) {
-      setError("Please repeat your password.");
+      setError("Zopakujte heslo.");
       return;
     }
     if (password !== passwordConfirm) {
-      setError("Passwords do not match.");
+      setError("Hesla se neshodují.");
       return;
     }
   }
@@ -302,7 +490,7 @@ authForm.addEventListener("submit", async (e) => {
     // Crucial: check nickname uniqueness BEFORE creating auth user.
     const available = await isNicknameAvailable(nickname);
     if (!available) {
-      setError("This nickname is already taken.");
+      setError("Tato přezdívka je už obsazená.");
       return;
     }
 
@@ -333,9 +521,11 @@ onAuthStateChanged(auth, async (user) => {
     setView({ showDashboard: true });
     try {
       currentNickname = await fetchNicknameForUser(user.uid);
-      setUserStatusLabel(currentNickname ? `Logged in as ${currentNickname}` : "Logged in");
+      setUserStatusLabel(
+        currentNickname ? `Přihlášen jako ${currentNickname}` : "Přihlášen"
+      );
     } catch (err) {
-      setUserStatusLabel("Logged in");
+      setUserStatusLabel("Přihlášen");
       // eslint-disable-next-line no-console
       console.error(err);
     }
@@ -344,14 +534,14 @@ onAuthStateChanged(auth, async (user) => {
 
   // If user signed out, only show auth screen if not in guest mode.
   setView({ showDashboard: isGuest });
-  if (!isGuest) setUserStatusLabel("Logged out");
+  if (!isGuest) setUserStatusLabel("Odhlášen");
 });
 
 // Initial state
-wirePasswordToggle(passwordEl, togglePasswordBtn, { labelBase: "password" });
+wirePasswordToggle(passwordEl, togglePasswordBtn, { labelBase: "heslo" });
 if (passwordConfirmEl && togglePasswordConfirmBtn) {
   wirePasswordToggle(passwordConfirmEl, togglePasswordConfirmBtn, {
-    labelBase: "confirm password",
+    labelBase: "potvrzení hesla",
   });
 }
 setMode("login");
